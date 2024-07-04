@@ -62,5 +62,21 @@ describe("PetAdoption", function () {
             const { contract, adoptedPetIndex, account2 } = await loadFixture(deployContract);
             await expect(contract.connect(account2).adoptPet(adoptedPetIndex)).to.be.revertedWith("Pet already adopted");
         });
+
+        it("Should adopt pet successfully", async function () {
+            const { contract, adoptedPetIndex, account2 } = await loadFixture(deployContract);
+
+            await expect(contract.connect(account2).adoptPet(1)).not.to.be.reverted;
+            contract.connect(account2).adoptPet(4);
+
+            const petOwnerAdress = await contract.petToOwner(1);
+            const zeroAdress = await contract.petToOwner(100);
+            expect(zeroAdress).to.equal("0x0000000000000000000000000000000000000000");
+            expect(petOwnerAdress).to.equal(account2.address);
+
+            const petsByOwnerAdress2 = await contract.connect(account2).getAllAdoptedPetsByOwner();
+            expect(petsByOwnerAdress2).to.have.lengthOf(2);
+
+        });
     });
 });
