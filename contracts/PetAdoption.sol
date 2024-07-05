@@ -16,7 +16,7 @@ contract PetAdoption{
     }
 
     function addPet() public {
-        require(msg.sender == owner, "You are not a contract owner");
+        require(msg.sender == owner, "You are not a contract owner.");
         petIndex++;
     }
 

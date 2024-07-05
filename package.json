@@ -3,7 +3,8 @@
   "version": "1.0.0",
   "main": "index.js",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "frontend": "cd frontend && npm run dev",
+    "refresh": "npx hardhat clean && npx hardhat compile"
   },
   "keywords": [],
   "author": "",
