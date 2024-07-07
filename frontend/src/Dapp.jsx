@@ -1,14 +1,18 @@
 import { useEffect, useState } from "react";
+import { ethers } from "ethers";
 import NavBar from "./components/NavBar";
 import PetItem from "./components/PetItem";
 import TXError from "./components/TxError";
 import ConnectWallet from "./components/ConnectWallet";
+import contractAdress from "./contracts/contract-address-localhost.json";
+import PetAdoptionArtifacts from "./contracts/PetAdoption.json";
 
 const HARDHAT_NETWORK_ID = Number(import.meta.env.VITE_HARDHAT_NETWORK_ID);
 
 function Dapp() {
   const [pets, setPets] = useState([]);
   const [selectedAddress, setselectedAddress] = useState(undefined);
+  const [contract, setContract] = useState(undefined);
 
   useEffect(() => {
     async function fetchPets() {
@@ -18,6 +22,24 @@ function Dapp() {
     }
     fetchPets();
   }, [])
+
+  const initContract = async () => {
+    const provider = new ethers.BrowserProvider(window.ethereum);
+    const newContract = new ethers.Contract(
+      contractAdress.PetAdoption,
+      PetAdoptionArtifacts.abi,
+      provider.getSigner(0)
+    );
+
+    setContract(newContract);
+    return newContract;
+  }
+
+  const initDapp = async (address) => {
+    setselectedAddress(address);
+    const contract = await initContract();
+    console.log(contract);
+  }
 
   const switchNetwork = async () => {
     const chainIdHex = `0x${HARDHAT_NETWORK_ID.toString(16)}`;
@@ -39,15 +61,15 @@ function Dapp() {
 
       const accounts = await window.ethereum.request({ method: 'eth_requestAccounts' });
       await checkNetwork();
-      setselectedAddress(accounts[0]);
+      initDapp(accounts[0]);
 
       window.ethereum.on('accountsChanged', (accounts) => {
         if (accounts.length === 0) {
           setselectedAddress(undefined);
         }
-        setselectedAddress(accounts[0]);
+        initDapp(accounts[0]);
       });
-      
+
     } catch (error) {
       console.error(error);
     }
