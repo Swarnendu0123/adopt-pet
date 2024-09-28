@@ -8,7 +8,7 @@ contract PetAdoption{
         string category;
         string breed;
     }
-    address private immutable i_owner;
+    address public immutable i_owner;
     // Number of pets added, will also be used as pet id and index
     uint256 private petsNumber;
 
