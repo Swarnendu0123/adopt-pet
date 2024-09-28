@@ -1,44 +1,94 @@
 import { useEffect, useState } from "react";
 import { ethers } from "ethers";
 import NavBar from "./components/NavBar";
-import PetItem from "./components/PetItem";
 import TXError from "./components/TxError";
 import ConnectWallet from "./components/ConnectWallet";
 import contractAdress from "./contracts/contract-address-localhost.json";
 import PetAdoptionArtifacts from "./contracts/PetAdoption.json";
-
+import Pets from "./components/Pets";
 const HARDHAT_NETWORK_ID = Number(import.meta.env.VITE_HARDHAT_NETWORK_ID);
 
 function Dapp() {
-  const [pets, setPets] = useState([]);
   const [selectedAddress, setselectedAddress] = useState(undefined);
   const [contract, setContract] = useState(undefined);
+  
+  const [petsData, setpetsData] = useState([]);
+  const [contractPets, setContractPets] = useState([]);
+  const [pets, setPets] = useState([]);
 
   useEffect(() => {
-    async function fetchPets() {
-      const res = await fetch("/pets.json");
-      const data = await res.json();
-      setPets(data);
+    if (contract) {
+      fetchPetsFromContract();
     }
-    fetchPets();
-  }, [])
+  }, [contract]);
+
+  useEffect(() => {
+    mergePetsData();
+  }, [petsData, contractPets]);
+
+  async function fetchPets() {
+    const res = await fetch("/pets.json");
+    const data = await res.json();
+    setpetsData(data);
+  }
+
+  async function fetchPetsFromContract() {
+    try {
+      if (contract) {
+        const pets = await contract.getAllUnadoptedPets();
+        setContractPets(pets);
+      } else {
+        console.log("Contract not initialized");
+      }
+    } catch (error) {
+      console.error("Error fetching pets from contract:", error);
+    }
+  }
+
+  async function mergePetsData() {
+    let pets = [];
+    let i = 0;
+    let j = 0;
+    while (i < petsData.length && j < contractPets.length) {
+      if (petsData[i].id == contractPets[j].id) {
+        const petWithDetails = {
+          ...petsData[i],
+          category: contractPets[j].category,
+          breed: contractPets[j].breed
+        };
+        pets.push(petWithDetails);
+        i++;
+        j++;
+      } else {
+        i++;
+      }
+    }
+    setPets(pets);
+  }
 
   const initContract = async () => {
-    const provider = new ethers.BrowserProvider(window.ethereum);
-    const newContract = new ethers.Contract(
-      contractAdress.PetAdoption,
-      PetAdoptionArtifacts.abi,
-      provider.getSigner(0)
-    );
+    try {
+      const provider = new ethers.BrowserProvider(window.ethereum);
+      const signer = await provider.getSigner();
+      const newContract = new ethers.Contract(
+        contractAdress.PetAdoption,
+        PetAdoptionArtifacts.abi,
+        signer
+      );
 
-    setContract(newContract);
-    return newContract;
+      setContract(newContract);
+      return newContract;
+    } catch (error) {
+      console.error("Error initializing contract:", error);
+      return null;
+    }
   }
 
   const initDapp = async (address) => {
     setselectedAddress(address);
     const contract = await initContract();
     console.log(contract);
+    await fetchPets();
   }
 
   const switchNetwork = async () => {
@@ -58,7 +108,6 @@ function Dapp() {
 
   const connectWallet = async () => {
     try {
-
       const accounts = await window.ethereum.request({ method: 'eth_requestAccounts' });
       await checkNetwork();
       initDapp(accounts[0]);
@@ -66,16 +115,14 @@ function Dapp() {
       window.ethereum.on('accountsChanged', (accounts) => {
         if (accounts.length === 0) {
           setselectedAddress(undefined);
+          initDapp(accounts[0]);
         }
-        initDapp(accounts[0]);
       });
 
     } catch (error) {
       console.error(error);
     }
   }
-
-
 
   if (selectedAddress === undefined) {
     return <ConnectWallet connect={connectWallet} />
@@ -93,16 +140,9 @@ function Dapp() {
 
   return (
     <div className="container">
-      <TXError />
       <br />
       <NavBar adress={selectedAddress} />
-      <div className="items">
-        {
-          pets.map((pet, index) => {
-            return <PetItem key={index} pet={pet} />;
-          })
-        }
-      </div>
+      <Pets pets={pets}/>
     </div>
   );
 }

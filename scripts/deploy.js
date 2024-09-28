@@ -1,4 +1,3 @@
-
 const hre = require("hardhat");
 const path = require("path");
 const fs = require("fs");
@@ -10,14 +9,25 @@ async function main() {
   const address = await deployer.getAddress();
   console.log(`Deploying the contract with the account: ${address}`);
 
-  const PETS_COUNT = 5;
   const PetAdoption = await hre.ethers.getContractFactory("PetAdoption");
-  const contract = await PetAdoption.deploy(PETS_COUNT);
-
+  const contract = await PetAdoption.deploy();
 
   console.log(`PetAdoption deployed to ${contract.address}`);
 
   saveContractFiles(contract);
+
+  await savePets(contract);
+  console.log("Deployment finished!");
+  const pets = await contract.getAllPets();
+  console.log(pets);
+}
+
+async function savePets(contract) {
+  await contract.addPet("Dog", "Scottish Terrier");
+  await contract.addPet("Dog", "German Shepherd");
+  await contract.addPet("Dog", "Golden Retriever");
+  await contract.addPet("Dog", "Poodle");
+  await contract.addPet("Dog", "Boxer");
 }
 
 function saveContractFiles(contract) {
@@ -28,11 +38,11 @@ function saveContractFiles(contract) {
   }
 
   fs.writeFileSync(
-    path.join(contractDir, `contract-address-${network.name}.json`),
+    path.join(contractDir, `contract-address-${hre.network.name}.json`),
     JSON.stringify({PetAdoption: contract.target}, null, 2)
   );
 
-  const PetAdoptionArtifact = artifacts.readArtifactSync("PetAdoption");
+  const PetAdoptionArtifact = hre.artifacts.readArtifactSync("PetAdoption");
 
   fs.writeFileSync(
     path.join(contractDir, "PetAdoption.json"),
@@ -44,4 +54,3 @@ main().catch(error => {
   console.log(error);
   process.exitCode = 1;
 });
-

@@ -20,6 +20,7 @@ contract PetAdoption{
         i_owner = msg.sender;
         petsNumber = 0; 
     }
+    
     // Get pet details as args, create a pet struct, push struct to allPets array, increment petsNumber
     function addPet(string memory category, string memory breed) public {
         require(msg.sender == i_owner, "You are not a contract owner.");

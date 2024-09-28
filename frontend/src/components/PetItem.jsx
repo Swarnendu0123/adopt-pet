@@ -9,6 +9,9 @@ const PetItem = ({pet}) => {
             </div>
             <div className="info-holder">
                 <div>
+                    <b>Category:</b> {pet.category}
+                </div>
+                <div>
                     <b>Name:</b> {pet.name}
                 </div>
                 <div>
