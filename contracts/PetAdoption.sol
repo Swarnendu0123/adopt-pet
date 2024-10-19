@@ -15,18 +15,31 @@ contract PetAdoption{
         petIndex = initialPetIndex; 
     }
 
-    function addPet() public {
-        require(msg.sender == owner, "You are not a contract owner.");
-        petIndex++;
-    }
+modifier onlyOwner() {
+    require(msg.sender == owner, "You are not the contract owner.");
+    _;
+}
 
-    function adoptPet(uint adoptIdx) public{
-        require(adoptIdx < petIndex, "Pet index out of range");
-        require(petToOwner[adoptIdx] == address(0), "Pet already adopted");
-        petToOwner[adoptIdx] = msg.sender;
-        ownerToPets[msg.sender].push(adoptIdx);
-        allAdoptedPets.push(adoptIdx);
-    }
+event PetAdopted(address indexed owner, uint petId);
+
+    function addPet() public onlyOwner {
+    ++petIndex;
+}
+
+    function adoptPet(uint petId) public {
+    uint currentPetIndex = petIndex; // Cache state variable
+    require(petId < currentPetIndex, "Pet index out of range");
+    require(petToOwner[petId] == address(0), "Pet already adopted");
+
+    petToOwner[petId] = msg.sender;
+    uint[] storage pets = ownerToPets[msg.sender];
+    pets.push(petId);
+    allAdoptedPets.push(petId);
+
+    emit PetAdopted(msg.sender, petId);
+}
+
+
 
     function getOwner() public view returns(address){
         return owner;   
