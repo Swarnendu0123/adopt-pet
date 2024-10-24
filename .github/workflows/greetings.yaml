@@ -1,6 +1,8 @@
-name: Greetings
+name: Greetings and Engagement
 
-on: [pull_request_target, issues]
+on:
+  pull_request_target:
+  issues:
 
 jobs:
   greeting:
@@ -9,8 +11,23 @@ jobs:
       issues: write
       pull-requests: write
     steps:
-    - uses: actions/first-interaction@v1
-      with:
-        repo-token: ${{ secrets.GITHUB_TOKEN }}
-        issue-message: "Hi there! Thanks for opening this issue. We appreciate your contribution to this open-source project. We aim to respond or assign your issue as soon as possible."
-        pr-message: "Welcome to Our repository.🎊 Thank you so much for taking the time to point this out."
+      - uses: actions/first-interaction@v1
+        with:
+          repo-token: ${{ secrets.GITHUB_TOKEN }}
+          issue-message: |
+            Hi there! 👋
+            
+            Thank you for opening this issue! 🙏 We truly appreciate your effort in contributing to this project. 
+            Your feedback helps us improve, and we will do our best to address or assign your issue promptly.
+            
+            In the meantime, feel free to check out our contribution guidelines or other open issues to explore more opportunities to collaborate.
+            
+            Thanks again for your support! 🚀
+          pr-message: |
+            Welcome to our repository! 🎉
+
+            We're thrilled that you've taken the time to submit this pull request. 🛠️ Your contribution is incredibly valuable to us, and we can't wait to review it. Rest assured, we will provide feedback or merge your changes as soon as possible.
+
+            Please don’t hesitate to reach out if you have any questions or if there’s anything else we can do to help. 
+
+            Thank you for making this project better! 💪
