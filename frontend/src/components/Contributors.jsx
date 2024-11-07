@@ -9,45 +9,45 @@ function Contributors() {
   const [error, setError] = useState(null);
 
   useEffect(() => {
-    async function fetchContributors() {
+    async function fetchData() {
       let allContributors = [];
       let page = 1;
 
       try {
-        while (true) {
+        const contributorsRequest = async () => {
+          while (true) {
+            const response = await axios.get(
+              `https://api.github.com/repos/Swarnendu0123/adopt-pet/contributors`,
+              {
+                params: { per_page: 100, page },
+              }
+            );
+            const data = response.data;
+            if (data.length === 0) break; // Stop if no more contributors
+            allContributors = [...allContributors, ...data];
+            page++;
+          }
+          setContributors(allContributors);
+        };
+
+        const repoStatsRequest = async () => {
           const response = await axios.get(
-            `https://api.github.com/repos/Swarnendu0123/adopt-pet/contributors`, // Correct API endpoint
-            {
-              params: { per_page: 100, page },
-            }
+            `https://api.github.com/repos/Swarnendu0123/adopt-pet`
           );
-          const data = response.data;
-          if (data.length === 0) break; // Stop if no more contributors
-          allContributors = [...allContributors, ...data];
-          page++;
-        }
-        setContributors(allContributors);
+          setRepoStats(response.data);
+        };
+
+        // Wait for both requests to complete
+        await Promise.all([contributorsRequest(), repoStatsRequest()]);
       } catch (error) {
-        console.error("Error fetching contributors:", error.message);
-        setError("Failed to load contributors. Please try again later.");
+        console.error("Error fetching data:", error.message);
+        setError("Failed to load data. Please try again later.");
+      } finally {
+        setLoading(false); // Ensure loading is set to false regardless of success or error
       }
     }
 
-    async function fetchRepoStats() {
-      try {
-        const response = await axios.get(
-          `https://api.github.com/repos/Swarnendu0123/adopt-pet` // Correct API endpoint
-        );
-        setRepoStats(response.data);
-      } catch (error) {
-        console.error("Error fetching repository stats:", error.message);
-        setError("Failed to load repository stats. Please try again later.");
-      }
-    }
-
-    // Call the fetch functions
-    fetchContributors();
-    fetchRepoStats();
+    fetchData();
   }, []);
 
   // Calculate total contributions
